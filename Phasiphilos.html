@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Phasmophobia Ultimate Toolkit (2025 Edition)</title>
     <style>
-        body { font-family: Arial, sans-serif; background: linear-gradient(#1c2526, #2a3439); color: #d9d9d9; margin: 0; padding: 0; position: relative; overflow-x: hidden; }
+        body { font-family: Arial, sans-serif; background: linear-gradient(#1c2526, #2a3439); color: #d9d9d9; margin: 0; padding: 0; position: relative; overflow-x: hidden; min-width: 320px; }
         .container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; z-index: 1; position: relative; }
         h1 { font-size: 2.25rem; color: #4CAF50; text-shadow: 0 0 5px rgba(76,175,80,0.5); text-align: center; margin-bottom: 1rem; }
         h2 { font-size: 1.5rem; color: #d9d9d9; text-align: center; margin-bottom: 1.5rem; }
@@ -35,6 +35,784 @@
         .highlight { background: #4CAF50; color: #1c2526; padding: 0.25rem 0.5rem; border-radius: 0.25rem; animation: glow 2s infinite; display: inline-block; }
         td:empty::after { content: '-'; color: #999; }
         @keyframes glow { 0%,100% { box-shadow: 0 0 5px rgba(76,175,80,0.5); } 50% { box-shadow: 0 0 15px rgba(76,175,80,0.8); } }
+        .hidden { display: none; }
+        .fade-in { animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .accordion { background: #2a3439; padding: 1rem; margin-bottom: 1.5rem; cursor: pointer; transition: background 0.3s; }
+        .accordion:hover { background: #3b6b4f; }
+        .accordion-content { display: none; padding: 1rem; background: #1c2526; }
+        .accordion.active .accordion-content { display: block; }
+        .icon { font-size: 1.2rem; margin-right: 0.5rem; }
+        [title] { cursor: help; position: relative; }
+        [title]:hover::after, [title]:focus::after { content: attr(title); position: absolute; background: #2a3439; border: 1px solid #4CAF50; padding: 0.5rem; z-index: 10; white-space: normal; width: 200px; left: 0; top: 100%; }
+        #emf-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.3; pointer-events: none; }
+        .wisp { position: fixed; width: 20px; height: 20px; background: radial-gradient(circle, rgba(76,175,80,0.5), transparent); border-radius: 50%; pointer-events: none; animation: float 10s infinite ease-in-out; }
+        @keyframes float { 0% { transform: translate(0,0); opacity: 0.5; } 50% { transform: translate(100px,-50px); opacity: 0.2; } 100% { transform: translate(0,0); opacity: 0.5; } }
+        .ghost-identifier { background: #2a3439; padding: 1rem; border: 1px solid #3b6b4f; margin-bottom: 1.5rem; }
+        .ghost-identifier button { background: #4CAF50; color: #1c2526; padding: 0.75rem; cursor: pointer; width: 100%; }
+        .results { color: #4CAF50; text-align: center; margin-top: 1rem; }
+        #high-contrast { position: fixed; top: 15px; right: 15px; background: #4CAF50; color: #1c2526; padding: 0.5rem; cursor: pointer; z-index: 100; }
+        body.high-contrast { background: #000; color: #fff; }
+        body.high-contrast table, body.high-contrast th, body.high-contrast td { border-color: #fff; background: #000; }
+        body.high-contrast .highlight { background: #ff0; color: #000; }
+        body.high-contrast .wisp { background: radial-gradient(circle, rgba(255,255,255,0.5), transparent); }
+        body.high-contrast #emf-canvas { opacity: 0.5; }
+        ul { padding-left: 1rem; }
+        li { margin-bottom: 0.5rem; line-height: 1.4; }
+        @media (max-width: 768px) { 
+            h1 { font-size: 1.75rem; }
+            h2 { font-size: 1.25rem; }
+            h3 { font-size: 1rem; }
+            .tabs { flex-direction: column; gap: 0.75rem; padding: 0.5rem; }
+            .tab-button { padding: 1rem; font-size: 0.95rem; min-height: 3rem; }
+            .evidence-controls { flex-direction: column; gap: 0.5rem; }
+            .evidence-controls label { padding: 1rem; min-height: 3rem; font-size: 0.9rem; flex: 1 1 100%; }
+            table { display: block; overflow-x: auto; border: 0; }
+            thead { display: none; }
+            tbody { display: block; }
+            tr { display: block; margin-bottom: 1.5rem; border: 1px solid #3b6b4f; border-radius: 0.25rem; padding: 0.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+            td { display: flex; justify-content: space-between; align-items: center; text-align: left; padding: 0.75rem; border: none; border-bottom: 1px solid #3b6b4f; }
+            td::before { content: attr(data-label) ': '; flex: 1; font-weight: bold; margin-right: 0.5rem; }
+            td .highlight { margin-left: auto; }
+            td:empty::after { content: '-'; color: #999; flex: 0; }
+            .accordion { font-size: 0.9rem; }
+            #high-contrast { padding: 0.5rem; font-size: 0.85rem; }
+        }
+        @media print {
+            #emf-canvas, .wisp, #high-contrast, .tabs button:not(.active), .evidence-controls, input, button { display: none; }
+            .tab-content:not(.active) { display: none; }
+            body { background: white; color: black; }
+            table { margin: 1rem 0; }
+            th, td { border-color: black; background: white; color: black; padding: 0.5rem; }
+            .highlight { background: lightgreen; color: black; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="emf-canvas"></canvas>
+    <div class="wisp" style="top:10%;left:20%;animation-delay:0s;"></div>
+    <div class="wisp" style="top:30%;left:80%;animation-delay:2s;"></div>
+    <div class="wisp" style="top:60%;left:40%;animation-delay:4s;"></div>
+    <div class="wisp" style="top:80%;left:60%;animation-delay:6s;"></div>
+    <button id="high-contrast" aria-label="Toggle high contrast mode">Toggle High Contrast</button>
+
+    <div class="container">
+        <h1>Phasmophobia Ultimate Toolkit (2025 Edition)</h1>
+        <h2>Created by Philo Sipher | Updated for Chronicle v0.13 (June 2025)</h2>
+
+        <div class="tabs">
+            <button class="tab-button active" data-tab="evidence" aria-label="View Evidence Table">Evidence</button>
+            <button class="tab-button" data-tab="hunts" aria-label="View Hunt Thresholds Table">Hunt Thresholds</button>
+            <button class="tab-button" data-tab="speeds" aria-label="View Speeds Table">Speeds</button>
+            <button class="tab-button" data-tab="behaviors" aria-label="View Behaviors and Tests">Behaviors</button>
+            <button class="tab-button" data-tab="updates" aria-label="View 2025 Updates">2025 Updates</button>
+            <button class="tab-button" data-tab="identifier" aria-label="Use Ghost Identifier">Ghost Identifier</button>
+        </div>
+
+        <div id="evidence" class="tab-content active">
+            <h3>Ghost Evidence (All 24 Ghosts)</h3>
+            <input type="text" id="search" placeholder="Search ghosts by name or evidence..." aria-label="Search ghosts">
+            <div class="evidence-controls">
+                <label><input type="checkbox" id="main-emf"><span class="icon">⚡</span>EMF Level 5</label>
+                <label><input type="checkbox" id="main-fingerprints"><span class="icon">🖐️</span>Fingerprints (UV)</label>
+                <label><input type="checkbox" id="main-orbs"><span class="icon">🌟</span>Ghost Orbs</label>
+                <label><input type="checkbox" id="main-writing"><span class="icon">📖</span>Ghost Writing</label>
+                <label><input type="checkbox" id="main-freezing"><span class="icon">❄️</span>Freezing Temp</label>
+                <label><input type="checkbox" id="main-spirit"><span class="icon">📻</span>Spirit Box</label>
+                <label><input type="checkbox" id="main-dots"><span class="icon">👻</span>D.O.T.S. Projector</label>
+            </div>
+            <table class="evidence-table sortable" aria-label="Ghost Evidence Table">
+                <thead>
+                    <tr>
+                        <th data-sort="string">Ghost</th>
+                        <th title="Detect with EMF Reader" data-sort="string">EMF 5</th>
+                        <th title="Use UV Light on surfaces" data-sort="string">UV</th>
+                        <th title="Video Camera in dark" data-sort="string">Orbs</th>
+                        <th title="Place book in room" data-sort="string">Writing</th>
+                        <th title="Thermometer below 0°C" data-sort="string">Freezing</th>
+                        <th title="Ask questions in room" data-sort="string">Spirit Box</th>
+                        <th title="Projector shows silhouette" data-sort="string">D.O.T.S</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="ghost-row fade-in" data-evidence="fingerprints,orbs,dots" data-name="banshee">
+                        <td class="ghost-type" data-label="Ghost">Banshee</td>
+                        <td data-label="EMF 5"></td>
+                        <td data-label="UV"><span class="highlight">✔</span></td>
+                        <td data-label="Orbs"><span class="highlight">✔</span></td>
+                        <td data-label="Writing"></td>
+                        <td data-label="Freezing"></td>
+                        <td data-label="Spirit Box"></td>
+                        <td data-label="D.O.T.S"><span class="highlight">✔</span></td>
+                    </tr>
+                    <tr class="ghost-row fade-in" data-evidence="fingerprints,writing,freezing" data-name="demon">
+                        <td class="ghost-type" data-label="Ghost">Demon</td>
+                        <td data-label="EMF 5"></td>
+                        <td data-label="UV"><span class="highlight">✔</span></td>
+                        <td data-label="Orbs"></td>
+                        <td data-label="Writing"><span class="highlight">✔</span></td>
+                        <td data-label="Freezing"><span class="highlight">✔</span></td>
+                        <td data-label="Spirit Box"></td>
+                        <td data-label="D.O.T.S"></td>
+                    </tr>
+                    <tr class="ghost-row fade-in" data-evidence="dots,writing,spirit" data-name="deogen">
+                        <td class="ghost-type" data-label="Ghost">Deogen</td>
+                        <td data-label="EMF 5"></td>
+                        <td data-label="UV"></td>
+                        <td data-label="Orbs"></td>
+                        <td data-label="Writing"><span class="highlight">✔</span></td>
+                        <td data-label="Freezing"></td>
+                        <td data-label="Spirit Box"><span class="highlight">✔</span></td>
+                        <td data-label="D.O.T.S"><span class="highlight">✔</span></td>
+                    </tr>
+                    <tr class="ghost-row fade-in" data-evidence="emf,fingerprints,dots" data-name="goryo">
+                        <td class="ghost-type" data-label="Ghost">Goryo</td>
+                        <td data-label="EMF 5"><span class="highlight">✔</span></td>
+                        <td data-label="UV"><span class="highlight">✔</span></td>
+                        <td data-label="Orbs"></td>
+                        <td data-label="Writing"></td>
+                        <td data-label="Freezing"></td>
+                        <td data-label="Spirit Box"></td>
+                        <td data-label="D.O.T.S"><span class="highlight">✔</span></td>
+                    </tr>
+                    <tr class="ghost-row fade-in" data-evidence="fingerprints,orbs,freezing" data-name="hantu">
+                        <td class="ghost-type" data-label="Ghost">Hantu</td>
+                        <td data-label="EMF 5"></td>
+                        <td data-label="UV"><span class="highlight">✔</span></td>
+                        <td data-label="Orbs"><span class="highlight">✔</span></td>
+                        <td data-label="Writing"></td>
+                        <td data-label="Freezing"><span class="highlight">✔</span></td>
+                        <td data-label="Spirit Box"></td>
+                        <td data-label="D.O.T.S"></td>
+                    </tr>
+                    <tr class="ghost-row fade-in" data-evidence="emf,fingerprints,freezing" data-name="jinn">
+                        <td class="ghost-type" data-label="Ghost">Jinn</td>
+                        <td data-label="EMF 5"><span class="highlight">✔</span></td>
+                        <td data-label="UV"><span class="highlight">✔</span></td>
+                        <td data-label="Orbs"></td>
+                        <td data-label="Writing"></td>
+                        <td data-label="Freezing"><span class="highlight">✔</span></td>
+                        <td data-label="Spirit Box"></td>
+                        <td data-label="D.O.T.S"></td>
+                    </tr>
+                    <tr class="ghost-row fade-in" data-evidence="orbs,writing,spirit" data-name="mare">
+                        <td class="ghost-type" data-label="Ghost">Mare</td>
+                        <td data-label="EMF 5"></td>
+                        <td data-label="UV"></td>
+                        <td data-label="Orbs"><span class="highlight">✔</span></td>
+                        <td data-label="Writing"><span class="highlight">✔</span></td>
+                        <td data-label="Freezing"></td>
+                        <td data-label="Spirit Box"><span class="highlight">✔</span></td>
+                        <td data-label="D.O.T.S"></td>
+                    </tr>
+                    <tr class="ghost-row fade-in" data-evidence="fingerprints,orbs,freezing" data-name="mimic">
+                        <td class="ghost-type" data-label="Ghost">Mimic</td>
+                        <td data-label="EMF 5"></td>
+                        <td data-label="UV"><span class="highlight">✔</span></td>
+                        <td data-label="Orbs"><span class="highlight">✔</span></td>
+                        <td data-label="Writing"></td>
+                        <td data-label="Freezing"><span class="highlight">✔</span></td>
+                        <td data-label="Spirit Box"></td>
+                        <td data-label="D.O.T.S"></td>
+                    </tr>
+                    <tr class="ghost-row fade-in" data-evidence="writing,freezing,spirit" data-name="moroi">
+                        <td class="ghost-type" data-label="Ghost">Moroi</td>
+                        <td data-label="EMF 5"></td>
+                        <td data-label="UV"></td>
+                        <td data-label="Orbs"></td>
+                        <td data-label="Writing"><span class="highlight">✔</span></td>
+                        <td data-label="Freezing"><span class="highlight">✔</span></td>
+                        <td data-label="Spirit Box"><span class="highlight">✔</span></td>
+                        <td data-label="D.O.T.S"></td>
+                    </tr>
+                    <tr class="ghost-row fade-in" data-evidence="emf,writing,fingerprints" data-name="myling">
+                        <td class="ghost-type" data-label="Ghost">Myling</td>
+                        <td data-label="EMF 5"><span class="highlight">✔</span></td>
+                        <td data-label="UV"><span class="highlight">✔</span></td>
+                        <td data-label="Orbs"></td>
+                        <td data-label="Writing"><span class="highlight">✔</span></td>
+                        <td data-label="Freezing"></td>
+                        <td data-label="Spirit Box"></td>
+                        <td data-label="D.O.T.S"></td>
+                    </tr>
+                    <tr class="ghost-row fade-in" data-evidence="emf,orbs,fingerprints" data-name="obake">
+                        <td class="ghost-type" data-label="Ghost">Obake</td>
+                        <td data-label="EMF 5"><span class="highlight">✔</span></td>
+                        <td data-label="UV"><span class="highlight">✔</span></td>
+                        <td data-label="Orbs"><span class="highlight">✔</span></td>
+                        <td data-label="Writing"></td>
+                        <td data-label="Freezing"></td>
+                        <td data-label="Spirit Box"></td>
+                        <td data-label="D.O.T.S"></td>
+                    </tr>
+                    <tr class="ghost-row fade-in" data-evidence="emf,freezing,dots" data-name="oni">
+                        <td class="ghost-type" data-label="Ghost">Oni</td>
+                        <td data-label="EMF 5"><span class="highlight">✔</span></td>
+                        <td data-label="UV"></td>
+                        <td data-label="Orbs"></td>
+                        <td data-label="Writing"></td>
+                        <td data-label="Freezing"><span class="highlight">✔</span></td>
+                        <td data-label="Spirit Box"></td>
+                        <td data-label="D.O.T.S"><span class="highlight">✔</span></td>
+                    </tr>
+                    <tr class="ghost-row fade-in" data-evidence="orbs,freezing,spirit" data-name="onryo">
+                        <td class="ghost-type" data-label="Ghost">Onryo</td>
+                        <td data-label="EMF 5"></td>
+                        <td data-label="UV"></td>
+                        <td data-label="Orbs"><span class="highlight">✔</span></td>
+                        <td data-label="Writing"></td>
+                        <td data-label="Freezing"><span class="highlight">✔</span></td>
+                        <td data-label="Spirit Box"><span class="highlight">✔</span></td>
+                        <td data-label="D.O.T.S"></td>
+                    </tr>
+                    <tr class="ghost-row fade-in" data-evidence="fingerprints,spirit,dots" data-name="phantom">
+                        <td class="ghost-type" data-label="Ghost">Phantom</td>
+                        <td data-label="EMF 5"></td>
+                        <td data-label="UV"><span class="highlight">✔</span></td>
+                        <td data-label="Orbs"></td>
+                        <td data-label="Writing"></td>
+                        <td data-label="Freezing"></td>
+                        <td data-label="Spirit Box"><span class="highlight">✔</span></td>
+                        <td data-label="D.O.T.S"><span class="highlight">✔</span></td>
+                    </tr>
+                    <tr class="ghost-row fade-in" data-evidence="fingerprints,writing,spirit" data-name="poltergeist">
+                        <td class="ghost-type" data-label="Ghost">Poltergeist</td>
+                        <td data-label="EMF 5"></td>
+                        <td data-label="UV"><span class="highlight">✔</span></td>
+                        <td data-label="Orbs"></td>
+                        <td data-label="Writing"><span class="highlight">✔</span></td>
+                        <td data-label="Freezing"></td>
+                        <td data-label="Spirit Box"><span class="highlight">✔</span></td>
+                        <td data-label="D.O.T.S"></td>
+                    </tr>
+                    <tr class="ghost-row fade-in" data-evidence="emf,orbs,dots" data-name="raiju">
+                        <td class="ghost-type" data-label="Ghost">Raiju</td>
+                        <td data-label="EMF 5"><span class="highlight">✔</span></td>
+                        <td data-label="UV"></td>
+                        <td data-label="Orbs"><span class="highlight">✔</span></td>
+                        <td data-label="Writing"></td>
+                        <td data-label="Freezing"></td>
+                        <td data-label="Spirit Box"></td>
+                        <td data-label="D.O.T.S"><span class="highlight">✔</span></td>
+                    </tr>
+                    <tr class="ghost-row fade-in" data-evidence="orbs,writing,freezing" data-name="revenant">
+                        <td class="ghost-type" data-label="Ghost">Revenant</td>
+                        <td data-label="EMF 5"></td>
+                        <td data-label="UV"></td>
+                        <td data-label="Orbs"><span class="highlight">✔</span></td>
+                        <td data-label="Writing"><span class="highlight">✔</span></td>
+                        <td data-label="Freezing"><span class="highlight">✔</span></td>
+                        <td data-label="Spirit Box"></td>
+                        <td data-label="D.O.T.S"></td>
+                    </tr>
+                    <tr class="ghost-row fade-in" data-evidence="emf,writing,freezing" data-name="shade">
+                        <td class="ghost-type" data-label="Ghost">Shade</td>
+                        <td data-label="EMF 5"><span class="highlight">✔</span></td>
+                        <td data-label="UV"></td>
+                        <td data-label="Orbs"></td>
+                        <td data-label="Writing"><span class="highlight">✔</span></td>
+                        <td data-label="Freezing"><span class="highlight">✔</span></td>
+                        <td data-label="Spirit Box"></td>
+                        <td data-label="D.O.T.S"></td>
+                    </tr>
+                    <tr class="ghost-row fade-in" data-evidence="emf,writing,spirit" data-name="spirit">
+                        <td class="ghost-type" data-label="Ghost">Spirit</td>
+                        <td data-label="EMF 5"><span class="highlight">✔</span></td>
+                        <td data-label="UV"></td>
+                        <td data-label="Orbs"></td>
+                        <td data-label="Writing"><span class="highlight">✔</span></td>
+                        <td data-label="Freezing"></td>
+                        <td data-label="Spirit Box"><span class="highlight">✔</span></td>
+                        <td data-label="D.O.T.S"></td>
+                    </tr>
+                    <tr class="ghost-row fade-in" data-evidence="orbs,writing,dots" data-name="thaye">
+                        <td class="ghost-type" data-label="Ghost">Thaye</td>
+                        <td data-label="EMF 5"></td>
+                        <td data-label="UV"></td>
+                        <td data-label="Orbs"><span class="highlight">✔</span></td>
+                        <td data-label="Writing"><span class="highlight">✔</span></td>
+                        <td data-label="Freezing"></td>
+                        <td data-label="Spirit Box"></td>
+                        <td data-label="D.O.T.S"><span class="highlight">✔</span></td>
+                    </tr>
+                    <tr class="ghost-row fade-in" data-evidence="fingerprints,freezing,orbs,spirit" data-name="mimic">
+                        <td class="ghost-type" data-label="Ghost">The Mimic (Always + Orbs)</td>
+                        <td data-label="EMF 5"></td>
+                        <td data-label="UV"><span class="highlight">✔</span></td>
+                        <td data-label="Orbs"><span class="highlight">✔</span></td>
+                        <td data-label="Writing"></td>
+                        <td data-label="Freezing"><span class="highlight">✔</span></td>
+                        <td data-label="Spirit Box"><span class="highlight">✔</span></td>
+                        <td data-label="D.O.T.S"></td>
+                    </tr>
+                    <tr class="ghost-row fade-in" data-evidence="emf,freezing,spirit" data-name="twins">
+                        <td class="ghost-type" data-label="Ghost">Twins</td>
+                        <td data-label="EMF 5"><span class="highlight">✔</span></td>
+                        <td data-label="UV"></td>
+                        <td data-label="Orbs"></td>
+                        <td data-label="Writing"></td>
+                        <td data-label="Freezing"><span class="highlight">✔</span></td>
+                        <td data-label="Spirit Box"><span class="highlight">✔</span></td>
+                        <td data-label="D.O.T.S"></td>
+                    </tr>
+                    <tr class="ghost-row fade-in" data-evidence="emf,spirit,dots" data-name="wraith">
+                        <td class="ghost-type" data-label="Ghost">Wraith</td>
+                        <td data-label="EMF 5"><span class="highlight">✔</span></td>
+                        <td data-label="UV"></td>
+                        <td data-label="Orbs"></td>
+                        <td data-label="Writing"></td>
+                        <td data-label="Freezing"></td>
+                        <td data-label="Spirit Box"><span class="highlight">✔</span></td>
+                        <td data-label="D.O.T.S"><span class="highlight">✔</span></td>
+                    </tr>
+                    <tr class="ghost-row fade-in" data-evidence="orbs,spirit,dots" data-name="yokai">
+                        <td class="ghost-type" data-label="Ghost">Yokai</td>
+                        <td data-label="EMF 5"></td>
+                        <td data-label="UV"></td>
+                        <td data-label="Orbs"><span class="highlight">✔</span></td>
+                        <td data-label="Writing"></td>
+                        <td data-label="Freezing"></td>
+                        <td data-label="Spirit Box"><span class="highlight">✔</span></td>
+                        <td data-label="D.O.T.S"><span class="highlight">✔</span></td>
+                    </tr>
+                    <tr class="ghost-row fade-in" data-evidence="orbs,freezing,dots" data-name="yurei">
+                        <td class="ghost-type" data-label="Ghost">Yurei</td>
+                        <td data-label="EMF 5"></td>
+                        <td data-label="UV"></td>
+                        <td data-label="Orbs"><span class="highlight">✔</span></td>
+                        <td data-label="Writing"></td>
+                        <td data-label="Freezing"><span class="highlight">✔</span></td>
+                        <td data-label="Spirit Box"></td>
+                        <td data-label="D.O.T.S"><span class="highlight">✔</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="hunts" class="tab-content">
+            <h3>Hunt Sanity Thresholds</h3>
+            <table class="sortable" aria-label="Hunt Thresholds Table">
+                <thead>
+                    <tr>
+                        <th data-sort="string">Ghost</th>
+                        <th data-sort="string">Threshold</th>
+                        <th data-sort="string">Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td data-label="Ghost">Standard/Most</td>
+                        <td data-label="Threshold">50%</td>
+                        <td data-label="Notes">Average team sanity</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Banshee</td>
+                        <td data-label="Threshold">50%</td>
+                        <td data-label="Notes">Target's sanity only; may roam to target</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Demon</td>
+                        <td data-label="Threshold">70%</td>
+                        <td data-label="Notes">Can hunt at any sanity with ability</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Deogen</td>
+                        <td data-label="Threshold">40%</td>
+                        <td data-label="Notes">Always low</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Hantu</td>
+                        <td data-label="Threshold">50%</td>
+                        <td data-label="Notes">Standard</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Jinn</td>
+                        <td data-label="Threshold">50%</td>
+                        <td data-label="Notes">Standard</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Mare</td>
+                        <td data-label="Threshold">60% (dark), 40% (light)</td>
+                        <td data-label="Notes">Depends on room lighting</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Mimic</td>
+                        <td data-label="Threshold">Varies</td>
+                        <td data-label="Notes">Mimics other ghosts</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Moroi</td>
+                        <td data-label="Threshold">50%</td>
+                        <td data-label="Notes">Standard; faster at low sanity</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Myling</td>
+                        <td data-label="Threshold">50%</td>
+                        <td data-label="Notes">Standard</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Obake</td>
+                        <td data-label="Threshold">50%</td>
+                        <td data-label="Notes">Standard</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Oni</td>
+                        <td data-label="Threshold">50%</td>
+                        <td data-label="Notes">Standard</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Onryo</td>
+                        <td data-label="Threshold">60%</td>
+                        <td data-label="Notes">40% near flame; hunts if 3rd flame blown</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Phantom</td>
+                        <td data-label="Threshold">50%</td>
+                        <td data-label="Notes">Standard</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Poltergeist</td>
+                        <td data-label="Threshold">50%</td>
+                        <td data-label="Notes">Standard</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Raiju</td>
+                        <td data-label="Threshold">65% (near electronics)</td>
+                        <td data-label="Notes">Standard otherwise</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Revenant</td>
+                        <td data-label="Threshold">50%</td>
+                        <td data-label="Notes">Standard</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Shade</td>
+                        <td data-label="Threshold">35%</td>
+                        <td data-label="Notes">No hunt if player in room</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Spirit</td>
+                        <td data-label="Threshold">50%</td>
+                        <td data-label="Notes">Standard</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Thaye</td>
+                        <td data-label="Threshold">75% to 15%</td>
+                        <td data-label="Notes">Decreases with age</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Twins</td>
+                        <td data-label="Threshold">50%</td>
+                        <td data-label="Notes">Standard</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Wraith</td>
+                        <td data-label="Threshold">50%</td>
+                        <td data-label="Notes">Standard</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Yokai</td>
+                        <td data-label="Threshold">80% (near voice)</td>
+                        <td data-label="Notes">Standard otherwise</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Yurei</td>
+                        <td data-label="Threshold">50%</td>
+                        <td data-label="Notes">Standard</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="speeds" class="tab-content">
+            <h3>Ghost Speeds (Base & Modifiers)</h3>
+            <table class="sortable" aria-label="Ghost Speeds Table">
+                <thead>
+                    <tr>
+                        <th data-sort="string">Ghost</th>
+                        <th data-sort="string">Base Speed (m/s)</th>
+                        <th data-sort="string">Modifiers/Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td data-label="Ghost">Standard</td>
+                        <td data-label="Base Speed (m/s)">1.7</td>
+                        <td data-label="Modifiers/Notes">LoS accel to 2.5; Blood Moon +15%</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Banshee</td>
+                        <td data-label="Base Speed (m/s)">1.7</td>
+                        <td data-label="Modifiers/Notes">LoS accel</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Demon</td>
+                        <td data-label="Base Speed (m/s)">1.7</td>
+                        <td data-label="Modifiers/Notes">LoS accel</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Deogen</td>
+                        <td data-label="Base Speed (m/s)">0.4-3.0</td>
+                        <td data-label="Modifiers/Notes">Faster far, slower close</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Goryo</td>
+                        <td data-label="Base Speed (m/s)">1.7</td>
+                        <td data-label="Modifiers/Notes">LoS accel</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Hantu</td>
+                        <td data-label="Base Speed (m/s)">1.4-2.7</td>
+                        <td data-label="Modifiers/Notes">Faster in cold</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Jinn</td>
+                        <td data-label="Base Speed (m/s)">1.7</td>
+                        <td data-label="Modifiers/Notes">2.5 if LoS & breaker on</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Mare</td>
+                        <td data-label="Base Speed (m/s)">1.7</td>
+                        <td data-label="Modifiers/Notes">LoS accel</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Mimic</td>
+                        <td data-label="Base Speed (m/s)">Varies</td>
+                        <td data-label="Modifiers/Notes">Mimics others</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Moroi</td>
+                        <td data-label="Base Speed (m/s)">1.5-2.25</td>
+                        <td data-label="Modifiers/Notes">Faster at low sanity; up to 3.71 LoS</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Myling</td>
+                        <td data-label="Base Speed (m/s)">1.7</td>
+                        <td data-label="Modifiers/Notes">LoS accel</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Obake</td>
+                        <td data-label="Base Speed (m/s)">1.7</td>
+                        <td data-label="Modifiers/Notes">LoS accel</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Oni</td>
+                        <td data-label="Base Speed (m/s)">1.7</td>
+                        <td data-label="Modifiers/Notes">LoS accel</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Onryo</td>
+                        <td data-label="Base Speed (m/s)">1.7</td>
+                        <td data-label="Modifiers/Notes">LoS accel</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Phantom</td>
+                        <td data-label="Base Speed (m/s)">1.7</td>
+                        <td data-label="Modifiers/Notes">LoS accel</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Poltergeist</td>
+                        <td data-label="Base Speed (m/s)">1.7</td>
+                        <td data-label="Modifiers/Notes">LoS accel</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Raiju</td>
+                        <td data-label="Base Speed (m/s)">1.7</td>
+                        <td data-label="Modifiers/Notes">2.5 near electronics</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Revenant</td>
+                        <td data-label="Base Speed (m/s)">1.0-3.0</td>
+                        <td data-label="Modifiers/Notes">Slow idle, fast chase</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Shade</td>
+                        <td data-label="Base Speed (m/s)">1.7</td>
+                        <td data-label="Modifiers/Notes">LoS accel</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Spirit</td>
+                        <td data-label="Base Speed (m/s)">1.7</td>
+                        <td data-label="Modifiers/Notes">LoS accel</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Thaye</td>
+                        <td data-label="Base Speed (m/s)">1.0-2.75</td>
+                        <td data-label="Modifiers/Notes">Slows with age</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Twins</td>
+                        <td data-label="Base Speed (m/s)">1.53-1.87</td>
+                        <td data-label="Modifiers/Notes">Main 1.7 ±10%; decoy varies</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Wraith</td>
+                        <td data-label="Base Speed (m/s)">1.7</td>
+                        <td data-label="Modifiers/Notes">LoS accel</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Yokai</td>
+                        <td data-label="Base Speed (m/s)">1.7</td>
+                        <td data-label="Modifiers/Notes">LoS accel</td>
+                    </tr>
+                    <tr>
+                        <td data-label="Ghost">Yurei</td>
+                        <td data-label="Base Speed (m/s)">1.7</td>
+                        <td data-label="Modifiers/Notes">LoS accel</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="behaviors" class="tab-content">
+            <h3>Ghost Behaviors & Tests</h3>
+            <div class="accordion"><h4>Banshee</h4><div class="accordion-content">Unique scream on parabolic; targets one player. Test: Ignore non-target in hunt.</div></div>
+            <div class="accordion"><h4>Demon</h4><div class="accordion-content">Early hunts; crucifix 5m radius. Test: Hunt above 50% sanity.</div></div>
+            <div class="accordion"><h4>Deogen</h4><div class="accordion-content">Senses hidden players; heavy breathing on spirit box. Test: Always finds you.</div></div>
+            <div class="accordion"><h4>Goryo</h4><div class="accordion-content">Stays in one room; no wandering. Test: No room changes.</div></div>
+            <div class="accordion"><h4>Hantu</h4><div class="accordion-content">Visible breath; faster in cold; never turns breaker on. Test: Icy breath in hunts.</div></div>
+            <div class="accordion"><h4>Jinn</h4><div class="accordion-content">25% sanity drop; fast with breaker on. Test: Sudden sanity loss.</div></div>
+            <div class="accordion"><h4>Mare</h4><div class="accordion-content">Attacks in dark; turns off lights. Test: Hunt threshold changes with light.</div></div>
+            <div class="accordion"><h4>Mimic</h4><div class="accordion-content">Copies others; extra orbs. Test: Inconsistent behaviors/evidence.</div></div>
+            <div class="accordion"><h4>Moroi</h4><div class="accordion-content">Faster at low sanity; curses via spirit box. Test: Sanity pill speed check.</div></div>
+            <div class="accordion"><h4>Myling</h4><div class="accordion-content">Quiet footsteps/voices far away. Test: Sounds fade quickly.</div></div>
+            <div class="accordion"><h4>Obake</h4><div class="accordion-content">Unique fingerprints; shape-shifts. Test: 6-finger prints or no prints.</div></div>
+            <div class="accordion"><h4>Oni</h4><div class="accordion-content">More active with people; no airball events. Test: Increased activity in groups.</div></div>
+            <div class="accordion"><h4>Onryo</h4><div class="accordion-content">Blows out flames; hunts after 3rd. Test: Candle blow-out hunts.</div></div>
+            <div class="accordion"><h4>Phantom</h4><div class="accordion-content">Disappears in photos; long blink. Test: Photo makes it vanish.</div></div>
+            <div class="accordion"><h4>Poltergeist</h4><div class="accordion-content">Throws multiple objects. Test: Mass throws; EMF2 on ability.</div></div>
+            <div class="accordion"><h4>Raiju</h4><div class="accordion-content">Fast near electronics. Test: Speed boost with active gear.</div></div>
+            <div class="accordion"><h4>Revenant</h4><div class="accordion-content">Slow undetected, fast detected. Test: Incense hides to slow it.</div></div>
+            <div class="accordion"><h4>Shade</h4><div class="accordion-content">Shy; low activity with people. Test: No events in room with players.</div></div>
+            <div class="accordion"><h4>Spirit</h4><div class="accordion-content">No unique; longer smudge no-hunt. Test: 180s post-smudge safe.</div></div>
+            <div class="accordion"><h4>Thaye</h4><div class="accordion-content">Ages over time; slows/weakens. Test: Early fast hunts, later slow.</div></div>
+            <div class="accordion"><h4>Twins</h4><div class="accordion-content">Dual interactions; decoy slower. Test: Two EMF from different spots.</div></div>
+            <div class="accordion"><h4>Wraith</h4><div class="accordion-content">No salt footprints; teleports. Test: Salt walk no UV.</div></div>
+            <div class="accordion"><h4>Yokai</h4><div class="accordion-content">Hunts on voice; limited hearing. Test: Talk to trigger hunt.</div></div>
+            <div class="accordion"><h4>Yurei</h4><div class="accordion-content">Drains sanity fast; doors shut. Test: Smudge confines it.</div></div>
+        </div>
+
+        <div id="updates" class="tab-content">
+            <h3>2025 Chronicle Update Highlights</h3>
+            <ul>
+                <li><strong>New Item: Sound Recorder</strong> - Capture audio evidence (whispers, events) for Media tab bonuses.</li>
+                <li><strong>Media Collection</strong> - Journal tab for 13 media (5 photos, 5 videos, 3 sounds); unique captures give XP/money.</li>
+                <li><strong>Behavior Tweaks</strong> - Increased Goryo chance; minor changes to Deogen, Poltergeist, Yurei; new Banshee wail.</li>
+                <li><strong>Other</strong> - Upgraded van monitor, crucifix cooldown visible, Grafton rework, "On Record" challenges.</li>
+            </ul>
+            <button onclick="window.print()" aria-label="Export as PDF">Export as PDF</button>
+        </div>
+
+        <div id="identifier" class="tab-content">
+            <h3>Ghost Identifier Simulator</h3>
+            <div class="ghost-identifier">
+                <p>Select observed evidence:</p>
+                <div class="evidence-controls">
+                    <label><input type="checkbox" id="id-emf"><span class="icon">⚡</span>EMF Level 5</label>
+                    <label><input type="checkbox" id="id-fingerprints"><span class="icon">🖐️</span>Fingerprints (UV)</label>
+                    <label><input type="checkbox" id="id-orbs"><span class="icon">🌟</span>Ghost Orbs</label>
+                    <label><input type="checkbox" id="id-writing"><span class="icon">📖</span>Ghost Writing</label>
+                    <label><input type="checkbox" id="id-freezing"><span class="icon">❄️</span>Freezing Temp</label>
+                    <label><input type="checkbox" id="id-spirit"><span class="icon">📻</span>Spirit Box</label>
+                    <label><input type="checkbox" id="id-dots"><span class="icon">👻</span>D.O.T.S. Projector</label>
+                </div>
+                <button id="identify" aria-label="Identify Ghost">Identify Ghost</button>
+                <div class="results" id="identify-results"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab Switching
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.getElementById(btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Evidence Filtering & Search
+        const mainCheckboxes = document.querySelectorAll('#evidence .evidence-controls input');
+        const ghostRows = document.querySelectorAll('.ghost-row');
+        const searchInput = document.getElementById('search');
+
+        function filterGhosts() {
+            const selected = Array.from(mainCheckboxes).filter(cb => cb.checked).map(cb => cb.id.replace('main-', ''));
+            const searchTerm = searchInput.value.toLowerCase();
+            ghostRows.forEach(row => {
+                const evidenceMatch = selected.every(ev => row.dataset.evidence.includes(ev));
+                const nameMatch = row.dataset.name.toLowerCase().includes(searchTerm) || row.dataset.evidence.includes(searchTerm);
+                row.classList.toggle('hidden', (selected.length > 0 && !evidenceMatch) || !nameMatch);
+            });
+        }
+        mainCheckboxes.forEach(cb => cb.addEventListener('change', filterGhosts));
+        searchInput.addEventListener('input', filterGhosts);
+
+        // Accordions
+        document.querySelectorAll('.accordion').forEach(acc => {
+            acc.addEventListener('click', () => acc.classList.toggle('active'));
+        });
+
+        // Table Sorting with asc/desc toggle
+        document.querySelectorAll('.sortable th').forEach((th, index) => {
+            let ascending = true;
+            th.addEventListener('click', () => {
+                const table = th.closest('table');
+                const rows = Array.from(table.querySelectorAll('tbody tr'));
+                const type = th.dataset.sort;
+                rows.sort((a, b) => {
+                    let valA = a.children[index].textContent.trim();
+                    let valB = b.children[index].textContent.trim();
+                    if (type === 'number') {
+                        valA = parseFloat(valA) || 0;
+                        valB = parseFloat(valB) || 0;
+                        return ascending ? valA - valB : valB - valA;
+                    }
+                    return ascending ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                });
+                rows.forEach(row => table.querySelector('tbody').appendChild(row));
+                ascending = !ascending;
+                th.classList.toggle('asc', ascending);
+                th.classList.toggle('desc', !ascending);
+            });
+        });
+
+        // Ghost Identifier
+        document.getElementById('identify').addEventListener('click', () => {
+            const selected = Array.from(document.querySelectorAll('.ghost-identifier .evidence-controls input:checked')).map(cb => cb.id.replace('id-', ''));
+            const matches = Array.from(ghostRows).filter(row => selected.every(ev => row.dataset.evidence.includes(ev)));
+            const results = matches.map(row => row.dataset.name).join(', ') || 'No matches';
+            document.getElementById('identify-results').innerHTML = `Possible Ghosts: ${results}`;
+        });
+
+        // High Contrast Toggle
+        document.getElementById('high-contrast').addEventListener('click', () => document.body.classList.toggle('high-contrast'));
+
+        // EMF Animation
+        const canvas = document.getElementById('emf-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        function drawEMF() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const isHighContrast = document.body.classList.contains('high-contrast');
+            for (let i = 0; i < 5; i++) {
+                const x = 50 + i * 20; const y = 50;
+                ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2);
+                ctx.fillStyle = isHighContrast ? (Math.random() > 0.5 ? '#fff' : 'rgba(255,255,255,0.3)') : (Math.random() > 0.5 ? '#4CAF50' : 'rgba(76,175,80,0.3)');
+                ctx.fill(); ctx.strokeStyle = isHighContrast ? '#fff' : '#3b6b4f'; ctx.stroke();
+            }
+            requestAnimationFrame(drawEMF);
+        }
+        drawEMF();
+        window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+
+        // Fade-in on load
+        document.querySelectorAll('.ghost-row').forEach(row => row.classList.add('fade-in'));
+    </script>
+</body>
+</html>        @keyframes glow { 0%,100% { box-shadow: 0 0 5px rgba(76,175,80,0.5); } 50% { box-shadow: 0 0 15px rgba(76,175,80,0.8); } }
         .hidden { display: none; }
         .fade-in { animation: fadeIn 0.5s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
